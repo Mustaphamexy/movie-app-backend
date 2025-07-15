@@ -30,6 +30,51 @@ const searchMovies = async (req, res) => {
   }
 };
 
+// @desc    Discover movies with advanced filtering
+// @route   GET /api/movies/discover
+// @access  Public
+const discoverMovies = async (req, res) => {
+  try {
+    const {
+      query = '',
+      with_genres = '',
+      'vote_average.gte': voteGte = '',
+      primary_release_year = '',
+      sort_by = 'popularity.desc',
+      page = 1
+    } = req.query;
+
+    // Build params object
+    const params = {
+      api_key: TMDB_API_KEY,
+      query,
+      with_genres,
+      'vote_average.gte': voteGte,
+      primary_release_year,
+      sort_by,
+      page,
+      include_adult: false,
+      language: 'en-US'
+    };
+
+    // Remove empty parameters
+    Object.keys(params).forEach(key => {
+      if (params[key] === '') {
+        delete params[key];
+      }
+    });
+
+    const response = await axios.get(`${TMDB_BASE_URL}/discover/movie`, {
+      params
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error in discoverMovies:', error);
+    res.status(500).json({ message: 'Failed to fetch movies' });
+  }
+};
+
 // @desc    Get movie details
 // @route   GET /api/movies/:id
 // @access  Public
@@ -157,6 +202,7 @@ const getMoviesByGenre = async (req, res) => {
 
 module.exports = {
   searchMovies,
+  discoverMovies,
   getMovieDetails,
   getPopularMovies,
   getTopRatedMovies,
